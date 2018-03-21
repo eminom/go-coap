@@ -113,6 +113,17 @@ func init() {
 			codeNames[i] = fmt.Sprintf("Unknown (0x%x)", i)
 		}
 	}
+	for i := range optionNames {
+		if optionNames[i] == "" {
+			optionNames[i] = fmt.Sprintf("Unknown Opt-type(%d)", i)
+		}
+	}
+
+	for i := range mediaTypeNames {
+		if mediaTypeNames[i] == "" {
+			mediaTypeNames[i] = fmt.Sprintf("Unknown media-type(%d)", i)
+		}
+	}
 }
 
 func (c COAPCode) String() string {
@@ -128,6 +139,10 @@ var (
 
 // OptionID identifies an option in a message.
 type OptionID uint8
+
+func (o OptionID) String() string {
+	return optionNames[o]
+}
 
 /*
    +-----+----+---+---+---+----------------+--------+--------+---------+
@@ -173,6 +188,25 @@ const (
 	Size1         OptionID = 60
 )
 
+var optionNames = [256]string{
+	IfMatch:       "If-Match",
+	URIHost:       "Uri-Host",
+	ETag:          "ETag",
+	IfNoneMatch:   "If-None-Match",
+	Observe:       "Observe",
+	URIPort:       "Uri-Port",
+	LocationPath:  "Location-Path",
+	URIPath:       "URIPath",
+	ContentFormat: "Content-Format",
+	MaxAge:        "Max-Age",
+	URIQuery:      "URI-Query",
+	Accept:        "Accept",
+	LocationQuery: "Location-Query",
+	ProxyURI:      "Proxy-Uri",
+	ProxyScheme:   "Proxy-Scheme",
+	Size1:         "Size1",
+}
+
 // Option value format (RFC7252 section 3.2)
 type valueFormat uint8
 
@@ -212,6 +246,10 @@ var optionDefs = [256]optionDef{
 // MediaType specifies the content type of a message.
 type MediaType byte
 
+func (m MediaType) String() string {
+	return mediaTypeNames[m]
+}
+
 // Content types.
 const (
 	TextPlain     MediaType = 0  // text/plain;charset=utf-8
@@ -221,6 +259,15 @@ const (
 	AppExi        MediaType = 47 // application/exi
 	AppJSON       MediaType = 50 // application/json
 )
+
+var mediaTypeNames = [256]string{
+	TextPlain:     "text/plain;charset=utf-8",
+	AppLinkFormat: "application/link-format",
+	AppXML:        "application/xml",
+	AppOctets:     "application/octet-stream",
+	AppExi:        "application/exi",
+	AppJSON:       "application/json",
+}
 
 type option struct {
 	ID    OptionID
@@ -334,6 +381,18 @@ func (o options) Minus(oid OptionID) options {
 	return rv
 }
 
+func (o options) GetOptionIDs() []OptionID {
+	idsMap := make(map[OptionID]bool)
+	for _, opt := range o {
+		idsMap[opt.ID] = true
+	}
+	var ids []OptionID
+	for id, _ := range idsMap {
+		ids = append(ids, id)
+	}
+	return ids
+}
+
 // Message is a CoAP message.
 type Message struct {
 	Type      COAPType
@@ -348,6 +407,10 @@ type Message struct {
 // IsConfirmable returns true if this message is confirmable.
 func (m Message) IsConfirmable() bool {
 	return m.Type == Confirmable
+}
+
+func (m Message) GetOptionIDs() []OptionID {
+	return m.opts.GetOptionIDs()
 }
 
 // Options gets all the values for the given option.
