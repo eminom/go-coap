@@ -252,21 +252,52 @@ func (m MediaType) String() string {
 
 // Content types.
 const (
-	TextPlain     MediaType = 0  // text/plain;charset=utf-8
-	AppLinkFormat MediaType = 40 // application/link-format
-	AppXML        MediaType = 41 // application/xml
-	AppOctets     MediaType = 42 // application/octet-stream
-	AppExi        MediaType = 47 // application/exi
-	AppJSON       MediaType = 50 // application/json
+	TextPlain          MediaType = 0 // text/plain;charset=utf-8
+	TextXML            MediaType = 1 // indented types are not in the initial registry.
+	TextCSV            MediaType = 2
+	TextHTML           MediaType = 3
+	ImageGIF           MediaType = 21
+	ImagePNG           MediaType = 23
+	ImageTIFF          MediaType = 24
+	AudioRaw           MediaType = 25
+	VideoRaw           MediaType = 26
+	AppLinkFormat      MediaType = 40 // application/link-format
+	AppXML             MediaType = 41 // application/xml
+	AppOctets          MediaType = 42 // application/octet-stream
+	AppRdfXML          MediaType = 43
+	AppSoapXML         MediaType = 44
+	AppAtomXML         MediaType = 45
+	AppXmppXML         MediaType = 46
+	AppExi             MediaType = 47 // application/exi
+	AppFastInfoSet     MediaType = 48
+	AppSoapFastInfoSet MediaType = 49
+	AppJSON            MediaType = 50 // application/json
+	AppXObixBinary     MediaType = 51
+	// ContentMaxValue    MediaType = 0xFFFF
 )
 
 var mediaTypeNames = [256]string{
-	TextPlain:     "text/plain;charset=utf-8",
-	AppLinkFormat: "application/link-format",
-	AppXML:        "application/xml",
-	AppOctets:     "application/octet-stream",
-	AppExi:        "application/exi",
-	AppJSON:       "application/json",
+	TextPlain:          "text/plain;charset=utf-8",
+	TextXML:            "TextXML",
+	TextCSV:            "TextCSV",
+	TextHTML:           "TextHTML",
+	ImageGIF:           "ImageGIF",
+	ImagePNG:           "ImagePNG",
+	ImageTIFF:          "ImageTIFF",
+	AudioRaw:           "AudioRaw",
+	VideoRaw:           "VideoRaw",
+	AppLinkFormat:      "application/link-format",
+	AppXML:             "application/xml",
+	AppOctets:          "application/octet-stream",
+	AppRdfXML:          "AppRdfXML",
+	AppSoapXML:         "AppSoapXML",
+	AppAtomXML:         "AppAtomXML",
+	AppXmppXML:         "AppXmppXML",
+	AppExi:             "application/exi",
+	AppFastInfoSet:     "AppFastInfoSet",
+	AppSoapFastInfoSet: "AppSoapFastInfoSet",
+	AppJSON:            "application/json",
+	AppXObixBinary:     "AppXObixBinary",
 }
 
 type option struct {
@@ -341,10 +372,12 @@ func parseOptionValue(optionID OptionID, valueBuf []byte) interface{} {
 	case valueUint:
 		intValue := decodeInt(valueBuf)
 		if optionID == ContentFormat || optionID == Accept {
-			return MediaType(intValue)
-		} else {
-			return intValue
+			if intValue < 256 {
+				return MediaType(intValue)
+			}
 		}
+		// More type to be supported.
+		return LWM2M_MediaType(intValue)
 	case valueString:
 		return string(valueBuf)
 	case valueOpaque, valueEmpty:
@@ -701,4 +734,10 @@ func (m *Message) UnmarshalBinary(data []byte) error {
 	}
 	m.Payload = b
 	return nil
+}
+
+type LWM2M_MediaType int
+
+func (d LWM2M_MediaType) String() string {
+	return fmt.Sprintf("LWM2M MediaType:(%v)", int(d))
 }
