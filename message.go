@@ -371,6 +371,11 @@ func parseOptionValue(optionID OptionID, valueBuf []byte) interface{} {
 	switch def.valueFormat {
 	case valueUint:
 		intValue := decodeInt(valueBuf)
+		// Observe: To be supported.
+		// 0 for register.(From server request: to observe the object/instance)
+		if optionID == Observe {
+			return intValue
+		}
 		if optionID == ContentFormat || optionID == Accept {
 			if intValue < 256 {
 				return MediaType(intValue)
@@ -480,6 +485,10 @@ func (m Message) optionStrings(o OptionID) []string {
 // Path gets the Path set on this message if any.
 func (m Message) Path() []string {
 	return m.optionStrings(URIPath)
+}
+
+func (m Message) UriQuery() []string {
+	return m.optionStrings(URIQuery)
 }
 
 // PathString gets a path as a / separated string.
