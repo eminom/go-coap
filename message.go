@@ -474,12 +474,21 @@ func (m Message) Option(o OptionID) interface{} {
 	return nil
 }
 
+func (m Message) optionUint32(o OptionID) uint32 {
+	val := m.Option(o)
+	return val.(uint32)
+}
+
 func (m Message) optionStrings(o OptionID) []string {
 	var rv []string
 	for _, o := range m.Options(o) {
 		rv = append(rv, o.(string))
 	}
 	return rv
+}
+
+func (m Message) ObserveValue() uint32 {
+	return m.optionUint32(Observe)
 }
 
 // Path gets the Path set on this message if any.
